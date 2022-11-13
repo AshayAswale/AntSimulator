@@ -1,0 +1,28 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<antsim>
+    <gui>
+        <activate bool="true" /> <!-- activate GUI -->
+        <fullscreen bool="false" /> <!-- enter fullscreen mode -->
+    </gui>
+    <simulation>
+        <steps int="50000" /> <!-- number of simulation steps -->
+        <iterations int="20" /> <!-- number of trials to repeat -->
+    </simulation>
+    <regular_ants>
+        <number int="1024"/> <!-- number of ants to simulatate in total -->
+    </regular_ants>
+    <patience>
+        <activate bool="true" /> <!-- activate patience/cautionary pheromone secretion-->
+        <refill_increment int="500" /> <!-- refill increment per simulation step -->
+        <max int="500" /> <!-- maximum amount possible -->
+        <pheromone_evaporation_multiplier float="1000" /> <!-- patience/cautionary pheromone evaporation rate -->
+    </patience>
+    <malicious_ants>
+        <fraction float="0.02" /> <!-- fraction of ants that are malicious -->
+        <focus bool="false" /> <!-- activate malicious ants' focus on the food source -->
+        <timer int="100" /> <!-- delay after which the attack is launched -->
+        <pheromone_intensity_multiplier float="1" /> <!-- fake food pheromone intensity factor -->
+        <pheromone_evaporation_multiplier float="10.0" /> <!-- fake food pheromone evaporation rate -->
+    </malicious_ants>
+    <csv_output prefix="test"/> <!-- CSV output file prefix -->
+</antsim>

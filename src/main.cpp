@@ -145,9 +145,14 @@ void loadUserConf()
 {
 	tinyxml2::XMLDocument doc;
 
-	// Populate simulation parameters only if file exists, otherwise use default values
-	if (doc.LoadFile("config.xml") == 0)
+	// Populate simulation parameters only if file exists
+	try
 	{
+		if (doc.LoadFile("config.xml") != 0)
+		{
+			throw std::ios_base::failure("No \"config.xml\" file found!");
+		}
+
 		const char *temp_str;
 		tinyxml2::XMLElement *root = doc.FirstChildElement("antsim");
 
@@ -171,11 +176,8 @@ void loadUserConf()
 		// Get patience/cautionary settings
 		tinyxml2::XMLElement *patience_element = root->FirstChildElement("patience");
 		sim_config.patience_activation = patience_element->FirstChildElement("activate")->BoolAttribute("bool");
-		// sim_config.patience_refill_inc_vec = patience_element->FirstChildElement("refill_increment")->IntAttribute("int");
 		patience_element->FirstChildElement("refill_increment_range")->QueryStringAttribute("str_arr", &temp_str);
-
 		sim_config.ParsePatienceRefillIncVec(std::string(temp_str));
-		// sim_config.patience_max_val_vec = patience_element->FirstChildElement("max")->IntAttribute("int");
 		patience_element->FirstChildElement("max_range")->QueryStringAttribute("str_arr", &temp_str);
 		sim_config.ParseMaxPatienceVec(std::string(temp_str));
 		sim_config.patience_evaporation_mult = patience_element->FirstChildElement("pheromone_evaporation_multiplier")->FloatAttribute("float");
@@ -194,6 +196,11 @@ void loadUserConf()
 		root->FirstChildElement("csv_output")->QueryStringAttribute("prefix", &temp_str);
 
 		sim_config.csv_prefix = std::string(temp_str);
+	}
+	catch (const std::exception &e)
+	{
+		std::cout << e.what() << std::endl;
+		exit(1);
 	}
 }
 
@@ -255,8 +262,20 @@ void oneExperiment(int i)
 	static int x = 0;
 
 	std::string filepath = file_name_prefix + getExperimentSpecificName(i) + ".csv";
-	myfile.open(filepath);
-	if (!myfile.is_open()) {throw std::ios_base::failure("Cannot create path to " + filepath);} // ensure the file can be created
+	try
+	{
+		myfile.open(filepath);
+		if (!myfile.is_open())
+		{
+			throw std::ios_base::failure("Cannot create path to " + filepath);
+		} // ensure the file can be created
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << e.what() << '\n';
+		exit(1);
+	}
+
 	float food_found_per_ant = 0.0;
 	float food_delivered_per_ant = 0.0;
 	float fraction_of_ants_found_food = 0.0;

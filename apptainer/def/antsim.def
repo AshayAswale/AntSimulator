@@ -61,7 +61,7 @@ From: ubuntu:20.04
     # Insert additional labels
     echo "CREATED $(date)" >> $APPTAINER_LABELS
 
-%runscript    
+%runscript
     # Run simulation
     echo "Running simulation..."
     xvfb-run --error-file=xvfb-run.err --auto-servernum /AntSimulator/build/AntSimulator

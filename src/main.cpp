@@ -228,13 +228,12 @@ void initWorld(World &world, Colony &colony)
 		{
 			for (uint32_t y(0); y < food_map.getSize().y; ++y)
 			{
-				const sf::Vector2f position =
-					sf::Vector2f(to<float>(x * Conf::WORLD_WIDTH / food_map.getSize().x), to<float>(y * Conf::WORLD_HEIGHT / food_map.getSize().y));
+				const sf::Vector2f position = float(world.markers.cell_size) * sf::Vector2f(to<float>(x), to<float>(y));
 				if (food_map.getPixel(x, y).g > 100)
 				{
 					///////////////////
 					// FOOD POSITION
-					world.addFoodAt(position.x, position.y, 5);
+					world.addFoodAt(position.x / 10, position.y / 10, 5);
 				}
 				else if (food_map.getPixel(x, y).r > 100)
 				{
@@ -409,15 +408,12 @@ void displaySimulation()
 
 		if (c++ > C)
 		{
-			// c = 0;
+			c = 0;
 			window.clear(sf::Color(94, 87, 87));
 
 			display_manager.draw();
 
 			window.display();
-
-			// if (c>=SIMULATION_STEPS)
-			// break;
 		}
 	}
 }

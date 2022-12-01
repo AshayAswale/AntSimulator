@@ -22,14 +22,15 @@
  * @param sim_config.gui_fullscreen:: Do you want GUI to be fullscreen? Useful to turn off since some display configuration may crash at fullscreen
  * @param sim_config.sim_steps:: Number of steps of simulation (Will not be in effect for GUI)
  * @param sim_config.sim_iterations:: Run the same configured iteration these number of times
+ * @param sim_config.total_ant_number:: Total number of ants in the simulation
  * @param sim_config.malicious_fraction:: Probability of an ant being malicious (fraction of ants being malicious)
  * @param sim_config.malicious_timer_wait:: Delay after which the attack is launched
  * @param sim_config.malicious_focus::  Should the attack be focused towards food
  * @param sim_config.malicious_tracing_pattern::   Should malicious ants trace food pheromone or roam randomly
  * @param sim_config.patience_activation:: Will the ants secrete counter pheromone?
- * @param sim_config.patience_refill_inc_vec:: Increment value for counter pheromone refill after each time step
+ * @param sim_config.patience_refill_period_vec:: Period(s) needed for counter pheromone to return to the max value
  * @param sim_config.patience_evaporation_mult:: Multiplier for the evaporation rate of the fake food pheromone
- * @param sim_config.patience_max_val_vec::	What is the maximum value for the counter pheromone?
+ * @param sim_config.patience_max_val_vec::	What is(are) the maximum value(s) for the counter pheromone?
  * @param sim_config.malicious_intensity_mult:: Multiplier for the intensity of the fake food pheromone
  * @param sim_config.malicious_evaporation_mult:: Multiplier for the evaporation of the fake food pheromone
  */
@@ -37,22 +38,22 @@ struct SimulationConfiguration
 {
 	SimulationConfiguration(){};
 
-	void ParsePatienceRefillIncVec(const std::string &str_arr)
+	void ParsePatienceRefillPeriodVec(const std::string &str_arr)
 	{
 		std::istringstream ss(str_arr);
-		int val;
+		float val;
 		while (ss >> val)
 		{
-			patience_refill_inc_vec.push_back(val);
+			patience_refill_period_vec.push_back(val);
 		}
 
-		patience_refill_inc_itr = patience_refill_inc_vec.begin();
+		patience_refill_period_itr = patience_refill_period_vec.begin();
 	};
 
 	void ParseMaxPatienceVec(const std::string &str_arr)
 	{
 		std::istringstream ss(str_arr);
-		int val;
+		float val;
 		while (ss >> val)
 		{
 			patience_max_val_vec.push_back(val);
@@ -89,17 +90,17 @@ struct SimulationConfiguration
 
 	int sim_iterations = 100;
 
-	int reg_ant_number = 1024;
+	int total_ant_number = 1024;
 
 	bool patience_activation = false;
 
-	std::vector<int> patience_max_val_vec;
+	std::vector<float> patience_max_val_vec;
 
-	std::vector<int> patience_refill_inc_vec;
+	std::vector<float> patience_refill_period_vec;
 
-	std::vector<int>::const_iterator patience_max_val_itr;
+	std::vector<float>::const_iterator patience_max_val_itr;
 
-	std::vector<int>::const_iterator patience_refill_inc_itr;
+	std::vector<float>::const_iterator patience_refill_period_itr;
 
 	float patience_evaporation_mult = 1.0;
 
@@ -120,7 +121,7 @@ struct SimulationConfiguration
 	std::string food_map_path;
 };
 
-SimulationConfiguration sim_config; // define global variable
+SimulationConfiguration sim_config; // define as a global variable
 
 std::string getExperimentSpecificName(int iteration)
 {
@@ -135,7 +136,7 @@ std::string getExperimentSpecificName(int iteration)
 	std::string hell_phermn_intensity_multiplier_string = "_hell_phermn_intens-" + std::to_string(sim_config.malicious_intensity_mult);
 	std::string hell_phermn_evpr_multi_string = "_hell_phermn_evpr-" + std::to_string(sim_config.malicious_evaporation_mult);
 	std::string dilusion_max_string = "_dil_max-" + std::to_string(*sim_config.patience_max_val_itr);
-	std::string dilusion_increment_string = "_dil_incr-" + std::to_string(*sim_config.patience_refill_inc_itr);
+	std::string dilusion_increment_string = "_dil_incr-" + std::to_string(*sim_config.patience_refill_period_itr);
 	std::string iteration_string = "_iter-" + std::to_string(iteration);
 
 	return SIMULATION_STEPS_string + SIMULATION_ITERATIONS_string + malicious_fraction_string + malicious_timer_wait_string + malicious_ants_focus_string + ant_tracing_pattern_string + counter_pheromone_string + hell_phermn_intensity_multiplier_string + hell_phermn_evpr_multi_string + dilusion_max_string + dilusion_increment_string + iteration_string;
@@ -168,16 +169,16 @@ void loadUserConf()
 		sim_config.sim_steps = sim_element->FirstChildElement("steps")->IntAttribute("int");
 		sim_config.sim_iterations = sim_element->FirstChildElement("iterations")->IntAttribute("int");
 
-		// Get regular ant settings
-		tinyxml2::XMLElement *reg_ants_element = root->FirstChildElement("regular_ants");
-		sim_config.reg_ant_number = reg_ants_element->FirstChildElement("number")->IntAttribute("int");
-		Conf::ANTS_COUNT = sim_config.reg_ant_number; // @todo: this shouldn't really be done this way, but the config file has been hardcoded
+		// Get total ant settings
+		tinyxml2::XMLElement *total_ants_element = root->FirstChildElement("total_ants");
+		sim_config.total_ant_number = total_ants_element->FirstChildElement("number")->IntAttribute("int");
+		Conf::ANTS_COUNT = sim_config.total_ant_number; // @todo: this shouldn't really be done this way, but the config file has been hardcoded
 
 		// Get patience/cautionary settings
 		tinyxml2::XMLElement *patience_element = root->FirstChildElement("patience");
 		sim_config.patience_activation = patience_element->FirstChildElement("activate")->BoolAttribute("bool");
-		patience_element->FirstChildElement("refill_increment_range")->QueryStringAttribute("str_arr", &temp_str);
-		sim_config.ParsePatienceRefillIncVec(std::string(temp_str));
+		patience_element->FirstChildElement("refill_period_range")->QueryStringAttribute("str_arr", &temp_str);
+		sim_config.ParsePatienceRefillPeriodVec(std::string(temp_str));
 		patience_element->FirstChildElement("max_range")->QueryStringAttribute("str_arr", &temp_str);
 		sim_config.ParseMaxPatienceVec(std::string(temp_str));
 		sim_config.patience_evaporation_mult = patience_element->FirstChildElement("pheromone_evaporation_multiplier")->FloatAttribute("float");
@@ -209,7 +210,7 @@ void setStaticVariables()
 	WorldCell::setHellPhermnEvprMulti(sim_config.malicious_evaporation_mult);
 	Ant::resetFoodBitsCounters();
 	Ant::setDilusionMax(*sim_config.patience_max_val_itr);
-	Ant::setDilusionIncrement(*sim_config.patience_refill_inc_itr);
+	Ant::setDilusionIncrement((*sim_config.patience_max_val_itr) / (*sim_config.patience_refill_period_itr));
 }
 
 void initWorld(World &world, Colony &colony)
@@ -297,10 +298,10 @@ void oneExperiment(int i)
 		updateColony(world, colony);
 		if (j % skip_steps == 0)
 		{
-			food_found_per_ant = float(Ant::getFoodBitsTaken()) / float(1024);		   // Total  number of Ants
-			food_delivered_per_ant = float(Ant::getFoodBitsDelivered()) / float(1024); // Total  number of Ants
-			fraction_of_ants_found_food = float(Colony::getAntsThatFoundFood()) / float(1024);
-			fraction_of_ants_delivered_food = float(Colony::getAntsThatDeliveredFood()) / float(1024);
+			food_found_per_ant = float(Ant::getFoodBitsTaken()) / float(sim_config.total_ant_number);		  // Total  number of Ants
+			food_delivered_per_ant = float(Ant::getFoodBitsDelivered()) / float(sim_config.total_ant_number); // Total  number of Ants
+			fraction_of_ants_found_food = float(Colony::getAntsThatFoundFood()) / float(sim_config.total_ant_number);
+			fraction_of_ants_delivered_food = float(Colony::getAntsThatDeliveredFood()) / float(sim_config.total_ant_number);
 			myfile << (food_found_per_ant) << "," << food_delivered_per_ant << ","
 				   << fraction_of_ants_found_food << "," << fraction_of_ants_delivered_food << std::endl;
 		}
@@ -329,13 +330,13 @@ void simulateAnts()
 		// Iterate through all max patience pheromone values
 		for (auto &itr = sim_config.patience_max_val_itr; itr != sim_config.patience_max_val_vec.end(); ++itr)
 		{
-			// Iterate through all patience refill pheromone values
-			for (auto &itr = sim_config.patience_refill_inc_itr; itr != sim_config.patience_refill_inc_vec.end(); ++itr)
+			// Iterate through all patience refill period values
+			for (auto &itr = sim_config.patience_refill_period_itr; itr != sim_config.patience_refill_period_vec.end(); ++itr)
 			{
 				oneExperiment(i); // run single experiment trial
 			}
 
-			sim_config.patience_refill_inc_itr = sim_config.patience_refill_inc_vec.begin();
+			sim_config.patience_refill_period_itr = sim_config.patience_refill_period_vec.begin();
 		}
 
 		sim_config.patience_max_val_itr = sim_config.patience_max_val_vec.begin();

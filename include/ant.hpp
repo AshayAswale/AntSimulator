@@ -133,12 +133,12 @@ struct Ant
 		food_bits_delivered_counter = 0;
 	}
 
-	static void setDilusionMax(int max_value)
+	static void setDilusionMax(float max_value)
 	{
 		DILUSION_MAX = max_value;
 	}
 
-	static void setDilusionIncrement(int increment_value)
+	static void setDilusionIncrement(float increment_value)
 	{
 		DILUSION_INCREMENT = increment_value;
 	}
@@ -249,7 +249,7 @@ struct Ant
 				{
 					// std::cout<<"Okay";
 					const float coef = 0.01f;
-					dilusion_counter = dilusion_counter > 0 ? --dilusion_counter : 0;
+					dilusion_counter = dilusion_counter > 0 ? dilusion_counter - 1.0f : 0;
 					const float intensity = 1000.0f * exp(-coef * (dilusion_counter));
 					world.addMarker(position, Mode::CounterPhr, intensity);
 					// std::cout<<intensity<<" ";
@@ -337,9 +337,9 @@ struct Ant
 	float markers_count;
 	float last_marker;
 	float liberty_coef;
-	int dilusion_counter;
-	inline static int DILUSION_MAX;
-	int dilusion_patience_threshold;
+	float dilusion_counter;
+	inline static float DILUSION_MAX;
+	float dilusion_patience_threshold;
 	float markers_count_dilusion;
 	float counter_thresh;
 	bool is_malicious;
@@ -349,7 +349,7 @@ struct Ant
 	float hell_phermn_intensity_multiplier;
 	inline static int food_bits_taken_counter;
 	inline static int food_bits_delivered_counter;
-	inline static int DILUSION_INCREMENT;
+	inline static float DILUSION_INCREMENT;
 	bool found_food = false;
 	bool delivered_food_home = false;
 	bool first_mal_ant = false;

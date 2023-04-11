@@ -1,0 +1,67 @@
+Bootstrap: docker
+From: ubuntu:20.04
+
+%labels
+    AUTHOR khaiyichin@gmail.com
+    VERSION 1.0.0
+    NAME antsim
+
+%help
+    SUMMARY
+    This container contains the installation of the AntSimulator program.
+
+    CHANGELOG
+    v1.0.0
+    Initial release.
+
+%files
+    ../../include /AntSimulator/include
+    ../../src /AntSimulator/src
+    ../../res /AntSimulator/res
+    ../../CMakeLists.txt /AntSimulator/CMakeLists.txt
+    ../../install.sh /AntSimulator/install.sh
+
+%post -c /bin/bash
+    # Setup color output macro
+    loginfo() {
+        GREEN="\033[0;32m"
+        GREENB="\033[1;32m"
+        YELLOW="\033[0;33m"
+        YELLOWB="\033[1;33m"
+        RESET="\033[0m"
+
+        echo -e "${!1}APPTAINER BUILD:    ${2}${RESET}"
+    }
+
+    # Prevent user prompts
+    export DEBIAN_FRONTEND=noninteractive
+
+    # Terminate on errors
+    set -e
+
+    # Update and upgrade packages
+    loginfo "YELLOWB" "Updating and upgrading packages..."
+
+    apt update && apt upgrade -qy
+
+    # Install dependencies
+    loginfo "YELLOWB" "Installing dependencies..."
+    apt install -qy git wget build-essential cmake xvfb x11-xserver-utils
+
+    # Install SFML
+    loginfo "YELLOWB" "Installing SFML..."
+    apt install -qy libsfml-dev
+
+    # Install AntSimulator
+    loginfo "YELLOWB" "Installing AntSimulator..."
+    pushd /AntSimulator/
+    ./install.sh
+    popd
+
+    # Insert additional labels
+    echo "CREATED $(date)" >> $APPTAINER_LABELS
+
+%runscript
+    # Run simulation
+    echo "Running simulation..."
+    xvfb-run --error-file=xvfb-run.err --auto-servernum /AntSimulator/build/AntSimulator
